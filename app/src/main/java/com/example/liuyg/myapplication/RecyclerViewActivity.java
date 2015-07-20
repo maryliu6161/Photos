@@ -1,7 +1,11 @@
 package com.example.liuyg.myapplication;
 
 import android.app.Activity;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,15 +29,15 @@ import java.util.Date;
 /**
  * Created by liuyg on 7/19/15.
  */
-public class RecyclerViewActivity extends AppCompatActivity {
+public class RecyclerViewActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private static final int CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE = 200;
 
     private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
+    private MyAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private FloatingActionButton mFab;
-    private Uri fileUri;
+    private String mNewUri;
 
 
     @Override
@@ -50,15 +54,7 @@ public class RecyclerViewActivity extends AppCompatActivity {
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
-
-        // specify an adapter (see also next example)
-        Uri[] uris = new Uri[] {
-                Uri.parse("file:///storage/emulated/0/Pictures/MyCameraApp/IMG_19700915_034552.jpg"),
-                Uri.parse("file:///storage/emulated/0/Pictures/MyCameraApp/IMG_19700915_025727.jpg"),
-                Uri.parse("file:///storage/emulated/0/Pictures/MyCameraApp/IMG_19700915_025845.jpg"),
-                Uri.parse("file:///storage/emulated/0/Pictures/MyCameraApp/IMG_19700915_030008.jpg")
-        };
-        mAdapter = new MyAdapter(uris, this);
+        mAdapter = new MyAdapter(this);
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,8 +62,9 @@ public class RecyclerViewActivity extends AppCompatActivity {
                 // create Intent to take a picture and return control to the calling application
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-                fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE); // create a file to save the image
+                Uri fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE); // create a file to save the image
                 Log.d("-----", "file location is " + fileUri);
+                mNewUri = fileUri.toString();
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
 
                 // start the image capture Intent
@@ -76,18 +73,7 @@ public class RecyclerViewActivity extends AppCompatActivity {
         });
 
         mRecyclerView.setAdapter(mAdapter);
-    }
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelable("uri", fileUri);
-        RecyclerView recyclerView;
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        fileUri = (Uri) savedInstanceState.get("uri");
+        getLoaderManager().initLoader(0, null, this);
     }
 
     @Override
@@ -98,6 +84,7 @@ public class RecyclerViewActivity extends AppCompatActivity {
                 Toast.makeText(this, "Image saved to:\n" +
                         data.getData(), Toast.LENGTH_LONG).show();
 
+                mAdapter.add(mNewUri);
             } else if (resultCode == RESULT_CANCELED) {
                 // User cancelled the image capture
             } else {
@@ -118,7 +105,6 @@ public class RecyclerViewActivity extends AppCompatActivity {
         }
     }
 
-
     public static final int MEDIA_TYPE_IMAGE = 1;
     public static final int MEDIA_TYPE_VIDEO = 2;
 
@@ -133,14 +119,14 @@ public class RecyclerViewActivity extends AppCompatActivity {
         // using Environment.getExternalStorageState() before doing this.
 
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "MyCameraApp");
+                Environment.DIRECTORY_PICTURES), "YingPhotoApp");
         // This location works best if you want the created images to be shared
         // between applications and persist after your app has been uninstalled.
 
         // Create the storage directory if it does not exist
         if (! mediaStorageDir.exists()){
             if (! mediaStorageDir.mkdirs()){
-                Log.d("MyCameraApp", "failed to create directory");
+                Log.d("YingPhotoApp", "failed to create directory");
                 return null;
             }
         }
@@ -159,5 +145,24 @@ public class RecyclerViewActivity extends AppCompatActivity {
         }
 
         return mediaFile;
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String[] projection = { UriTable.COLUMN_ID, UriTable.COLUMN_URI_STRING };
+        CursorLoader cursorLoader = new CursorLoader(this,
+                MyContentProvider.CONTENT_URI, projection, null, null, null);
+        return cursorLoader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d("-------", "calling onLoadFinished");
+        mAdapter.setCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mAdapter.setCursor(null);
     }
 }
