@@ -185,4 +185,15 @@ public class MyContentProvider extends ContentProvider {
             }
         }
     }
+
+    public void shutdown() {
+        if (database != null) {
+            SQLiteDatabase db = database.getWritableDatabase();
+            if (db != null && db.isOpen()) {
+                db.close();
+            }
+            database.close();
+            database = null;
+        }
+    }
 } 

@@ -1,13 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    namespace 'com.example.liuyg.myapplication'
+    compileSdkVersion 33
+    buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.example.liuyg.myapplication"
         minSdkVersion 22
-        targetSdkVersion 22
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0"
     }
@@ -17,12 +18,73 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    lintOptions {
+        abortOnError false
+        checkReleaseBuilds false
+        disable 'InvalidPackage'
+        tasks.lint.enabled = false
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+            all {
+                systemProperty 'robolectric.dependency.repo.id', 'mavenCentral'
+                systemProperty 'robolectric.logging', 'stdout'
+                systemProperty 'android.package', 'android-31'
+            }
+        }
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:recyclerview-v7:+'
-    compile 'com.android.support:cardview-v7:21.0.+'
-    compile 'com.android.support:design:22.2.0'
-    compile 'com.android.support:appcompat-v7:22.2.1'
+    // AndroidX dependencies
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'androidx.core:core:1.8.0'
+    implementation 'androidx.annotation:annotation:1.3.0'
+    implementation 'androidx.collection:collection:1.2.0'
+    
+    // Test dependencies
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:3.12.4'
+    testImplementation 'org.mockito:mockito-inline:3.12.4'
+    testImplementation 'androidx.test:core:1.5.0'
+    testImplementation 'androidx.test.ext:junit:1.1.5'
+    testImplementation 'org.robolectric:robolectric:4.9.2'
+    testImplementation 'androidx.test:core-ktx:1.5.0'
+    testImplementation 'androidx.test.ext:truth:1.5.0'
+    testImplementation 'org.hamcrest:hamcrest-library:2.2'
+    testImplementation 'androidx.sqlite:sqlite:2.3.1'
+    testImplementation 'androidx.test:runner:1.5.0'
+    testImplementation 'androidx.test:rules:1.5.0'
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org.bouncycastle:bcprov-jdk15on:1.65'
+    }
+}
+
+tasks.withType(Test) {
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+        exceptionFormat = 'full'
+        showStandardStreams = true
+        showCauses = true
+        showExceptions = true
+    }
+    
+    maxHeapSize = '2048m'
+    ignoreFailures = true
+    
+    jvmArgs = []
 }

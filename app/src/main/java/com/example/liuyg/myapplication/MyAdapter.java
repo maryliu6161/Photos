@@ -11,12 +11,14 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+
+// Replace old support imports with AndroidX
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -65,8 +67,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         // create a new view
         View v = LayoutInflater.from(mContext)
                 .inflate(R.layout.my_view_holder, null);
-        ViewHolder vh = new ViewHolder(v);
-        return vh;
+        return new ViewHolder(v);
     }
 
     // Replace the contents of a view (invoked by the layout manager)
@@ -97,6 +98,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     public void add(String uriString) {
         new AddUriTask(mContext, uriString).execute();
     }
+    /**
+     * Converts a database cursor containing a URI string into a Uri object
+     * 
+     * @param cursor The cursor positioned at the row containing the URI string
+     * @return A Uri object parsed from the URI string stored in the cursor
+     * @throws IllegalArgumentException if the URI string column is not found in the cursor
+     */
     private Uri convertCursorToUri(Cursor cursor) {
         int columnIndex = cursor.getColumnIndex(UriTable.COLUMN_URI_STRING);
         return  Uri.parse(cursor.getString(columnIndex));
@@ -111,6 +119,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     public Cursor getCursorAt(int position) {
         mCursor.moveToPosition(position);
+        System.out.println("Cursor at position " + position + ": " + mCursor.getString(mCursor.getColumnIndex(UriTable.COLUMN_URI_STRING)));
         return mCursor;
     }
     //----------------

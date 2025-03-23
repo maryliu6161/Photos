@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.liuyg.myapplication">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:allowBackup="true"
@@ -8,7 +7,9 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".RecyclerViewActivity">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -17,8 +18,8 @@
 
         <provider
             android:name=".MyContentProvider"
-            android:authorities="liuyg.photo.contentprovider" >
-        </provider>
+            android:authorities="com.example.liuyg.myapplication.provider"
+            android:exported="false" />
 
     </application>
 
